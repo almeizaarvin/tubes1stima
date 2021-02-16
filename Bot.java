@@ -8,12 +8,19 @@ import za.co.entelect.challenge.enums.Direction;
 import java.util.*;
 import java.util.stream.Collectors;
 
+//import jdk.internal.org.jline.terminal.impl.PosixSysTerminal;
+
 public class Bot {
 
     private Random random;
     private GameState gameState;
     private Opponent opponent;
     private MyWorm currentWorm;
+
+    private static int BananaCounter = 0;
+    private static int SnowballCounter = 0;
+
+    private static int freezeCooldown = 0;
 
     public Bot(Random random, GameState gameState) {
         this.random = random;
@@ -31,20 +38,133 @@ public class Bot {
 
     public Command run() {
 
+        freezeCooldown--;
+
+        if (currentWorm.id == 3 && SnowballCounter < 3)
+        {
+            if (freezeCooldown <= 0)
+            {
+                for (Worm enemy : opponent.worms) 
+                {
+                    float dis = Distance(enemy.position, currentWorm.position);
+                    if (dis <= 5 && dis > 2 && enemy.health > 0)
+                    {
+                        SnowballCounter++;
+                        freezeCooldown = 4;
+                        return new SnowballCommand(enemy.position.x, enemy.position.y);
+                    }
+                }
+            }
+        }
+
+
+        if (currentWorm.id == 2 && BananaCounter < 3)
+        {
+            for (Worm enemy : opponent.worms) 
+            {
+                float dis = Distance(enemy.position, currentWorm.position);
+                if (dis <= 5 && dis > 0 && enemy.health > 0)
+                {
+                    BananaCounter++;
+                    return new BananaCommand(enemy.position.x, enemy.position.y);
+                }
+            }
+        }
+        
         Worm enemyWorm = getFirstWormInRange();
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
+            
             return new ShootCommand(direction);
         }
 
-        List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-        int cellIdx = random.nextInt(surroundingBlocks.size());
+        // List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
+        // int cellIdx = random.nextInt(surroundingBlocks.size());
 
-        Cell block = surroundingBlocks.get(cellIdx);
-        if (block.type == CellType.AIR) {
+        // Cell block = surroundingBlocks.get(0);
+
+        int xTarget = 17;
+        int yTarget = 17;
+
+        boolean found = false;
+        int i = 2;
+        while(i > -1 && !found)
+        {
+            if (opponent.worms[i].health > 0)
+            {
+                xTarget = opponent.worms[i].position.x -1;
+                yTarget = opponent.worms[i].position.y +1;
+                found = true;
+            }
+
+            i--;
+        }
+
+        int xDir = xTarget - currentWorm.position.x;
+        int yDir = yTarget - currentWorm.position.y;
+
+        int xDel = (int) Math.round(xDir / Math.sqrt(xDir*xDir + yDir*yDir));
+        int yDel = (int) Math.round(yDir / Math.sqrt(xDir*xDir + yDir*yDir));
+
+        int xtar = currentWorm.position.x + xDel;
+        int ytar = currentWorm.position.y + yDel;
+        Cell block = gameState.map[ytar][xtar];
+
+        
+       
+        if (block.type == CellType.AIR) 
+        {
             return new MoveCommand(block.x, block.y);
-        } else if (block.type == CellType.DIRT) {
-            return new DigCommand(block.x, block.y);
+        } 
+        else if (block.type == CellType.DIRT) {
+
+            int xPrev = block.x;
+            int yPrev = block.y;
+            
+            int xFinalTarget = block.x;
+            int yFinalTarget = block.y;
+
+            int xArahTarget = block.x - currentWorm.position.x;
+            int yArahTarget = block.y - currentWorm.position.y;
+
+            if (xArahTarget * yArahTarget == 0)
+            {
+                if (xArahTarget == 0)
+                {
+                    Cell c1 = gameState.map[yFinalTarget][xFinalTarget-1];
+                    Cell c2 = gameState.map[yFinalTarget][xFinalTarget+1];
+                    
+                    if (c1.type == CellType.AIR)
+                        xFinalTarget -= 1;
+                    else if (c2.type == CellType.AIR)
+                        xFinalTarget += 1;
+                }
+                else
+                {
+                    Cell c1 = gameState.map[yFinalTarget-1][xFinalTarget];
+                    Cell c2 = gameState.map[yFinalTarget+1][xFinalTarget];
+                    
+                    if (c1.type == CellType.AIR)
+                        yFinalTarget -= 1;
+                    else if (c2.type == CellType.AIR)
+                        yFinalTarget += 1;
+                }
+            }
+            else
+            {
+                Cell c1 = gameState.map[yFinalTarget][xFinalTarget + xArahTarget*-1];
+                Cell c2 = gameState.map[yFinalTarget + yArahTarget*-1][xFinalTarget];
+            
+                if (c1.type == CellType.AIR)
+                    xFinalTarget += xArahTarget * -1;
+                else if (c2.type == CellType.AIR)
+                    yFinalTarget += yArahTarget * -1;
+            }
+
+            if (xPrev != xFinalTarget || yPrev != yFinalTarget)
+                return new MoveCommand(xFinalTarget, yFinalTarget);
+            else
+                return new DigCommand(xFinalTarget, yFinalTarget);
         }
 
         return new DoNothingCommand();
@@ -60,8 +180,29 @@ public class Bot {
 
         for (Worm enemyWorm : opponent.worms) {
             String enemyPosition = String.format("%d_%d", enemyWorm.position.x, enemyWorm.position.y);
-            if (cells.contains(enemyPosition)) {
-                return enemyWorm;
+            if (cells.contains(enemyPosition) && enemyWorm.health > 0) {
+                
+                boolean adaWormSaya = false;
+                int i = 0;
+                while(i < 3 && !adaWormSaya)
+                {
+                    String adaWormSayaPosition = String.format("%d_%d", gameState.myPlayer.worms[i].position.x, gameState.myPlayer.worms[i].position.y);
+                    if (cells.contains(adaWormSayaPosition) && gameState.myPlayer.worms[i].health > 0)
+                        adaWormSaya = true;
+                    
+                    i++;
+                }
+                
+                if (adaWormSaya)
+                {
+                    float enemyDistance = Distance(currentWorm.position, enemyWorm.position);
+                    float allyDistance = Distance(gameState.myPlayer.worms[i-1].position, currentWorm.position);
+
+                    if (enemyDistance < allyDistance)
+                        return enemyWorm;
+                }
+                else
+                    return enemyWorm;
             }
         }
 
@@ -140,5 +281,13 @@ public class Bot {
         }
 
         return Direction.valueOf(builder.toString());
+    }
+
+    private float Distance(Position a, Position b)
+    {
+        int xDir = b.x - a.x;
+        int yDir = b.y - a.y;
+
+        return (float)Math.sqrt(xDir*xDir + yDir*yDir);
     }
 }
