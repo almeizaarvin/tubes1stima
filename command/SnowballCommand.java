@@ -1,4 +1,4 @@
-package main.java.za.co.entelect.challenge.command;
+package za.co.entelect.challenge.command;
 
 public class SnowballCommand implements Command
 {

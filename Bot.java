@@ -62,7 +62,7 @@ public class Bot {
             for (Worm enemy : opponent.worms) 
             {
                 float dis = Distance(enemy.position, currentWorm.position);
-                if (dis <= 5 && dis > 0 && enemy.health > 0)
+                if (dis <= 5 && dis > 2 && enemy.health > 0)
                 {
                     BananaCounter++;
                     return new BananaCommand(enemy.position.x, enemy.position.y);
