@@ -16,6 +16,9 @@ public class Bot {
     private Opponent opponent;
     private MyWorm currentWorm;
 
+    // private boolean adaWormSaya = false;
+    // private Worm wormYangTerhalangi = null;
+
     private static int BananaCounter = 0;
     private static int SnowballCounter = 0;
 
@@ -86,8 +89,8 @@ public class Bot {
         int yTarget = 17;
 
         boolean found = false;
-        int i = 2;
-        while(i > -1 && !found)
+        int i = 0;
+        while(i < 3 && !found)
         {
             if (opponent.worms[i].health > 0)
             {
@@ -96,8 +99,28 @@ public class Bot {
                 found = true;
             }
 
-            i--;
+            i++;
         }
+
+        // if (adaWormSaya)
+        // {
+        //     if (wormYangTerhalangi != null)
+        //     {
+        //         int x = currentWorm.position.x - 17;
+        //         int y = currentWorm.position.y - 17;
+
+        //         int a = wormYangTerhalangi.position.x - 17;
+        //         int b = wormYangTerhalangi.position.y - 17;
+
+        //         int tetha = 90;
+
+        //         int xPindah = (int)Math.round(a + (x-a)*Math.cos(tetha) - (y-b)*Math.sin(tetha));
+        //         int yPindah = (int)Math.round(b + (x-a)*Math.sin(tetha) - (y-b)*Math.cos(tetha));
+
+        //         xTarget = xPindah + 17;
+        //         yTarget = yPindah + 17;
+        //     }
+        // }
 
         int xDir = xTarget - currentWorm.position.x;
         int yDir = yTarget - currentWorm.position.y;
@@ -107,6 +130,7 @@ public class Bot {
 
         int xtar = currentWorm.position.x + xDel;
         int ytar = currentWorm.position.y + yDel;
+
         Cell block = gameState.map[ytar][xtar];
 
         
@@ -169,8 +193,9 @@ public class Bot {
         return new DoNothingCommand();
     }
 
-    private Worm getFirstWormInRange() {
-
+    private Worm getFirstWormInRange() 
+    {
+        
         Set<String> cells = constructFireDirectionLines(currentWorm.weapon.range)
                 .stream()
                 .flatMap(Collection::stream)
@@ -199,6 +224,10 @@ public class Bot {
 
                     if (enemyDistance < allyDistance)
                         return enemyWorm;
+                    else
+                    {
+                        // wormYangTerhalangi = enemyWorm;
+                    }
                 }
                 else
                     return enemyWorm;
