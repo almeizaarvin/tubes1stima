@@ -8,7 +8,6 @@ import za.co.entelect.challenge.enums.Direction;
 import java.util.*;
 import java.util.stream.Collectors;
 
-//import jdk.internal.org.jline.terminal.impl.PosixSysTerminal;
 
 public class Bot {
 
