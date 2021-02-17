@@ -16,6 +16,8 @@ public class Bot {
     private Opponent opponent;
     private MyWorm currentWorm;
 
+    private float SHOOTRANGE = 5;
+
     // private boolean adaWormSaya = false;
     // private Worm wormYangTerhalangi = null;
 
@@ -101,7 +103,8 @@ public class Bot {
 
             i++;
         }
-
+        
+        //#region WORM BERDERET
         // if (adaWormSaya)
         // {
         //     if (wormYangTerhalangi != null)
@@ -121,6 +124,25 @@ public class Bot {
         //         yTarget = yPindah + 17;
         //     }
         // }
+        //#endregion
+        
+        if (found)
+        {
+            Position p = new Position(xTarget, yTarget);
+            float distance = Distance(currentWorm.position, p);
+
+            if (distance <= SHOOTRANGE)
+            {
+                int x = p.x - currentWorm.position.x;
+                int y = p.y - currentWorm.position.y;
+
+                if (x < y)
+                    yTarget = currentWorm.position.y;
+                else
+                    xTarget = currentWorm.position.x;
+            }
+            
+        }
 
         int xDir = xTarget - currentWorm.position.x;
         int yDir = yTarget - currentWorm.position.y;
