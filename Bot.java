@@ -8,6 +8,9 @@ import za.co.entelect.challenge.enums.Direction;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// import javax.swing.text.Position;
+// import javax.swing.text.StyledEditorKit.BoldAction;
+
 // import jdk.javadoc.internal.doclets.toolkit.taglets.ReturnTaglet;
 
 
@@ -17,6 +20,8 @@ public class Bot {
     private GameState gameState;
     private Opponent opponent;
     private MyWorm currentWorm;
+
+    private boolean ngumpul = false;
 
     private float SHOOTRANGE = 5;
 
@@ -115,7 +120,47 @@ public class Bot {
         }
         else
         {
+            if (!ngumpul)
+            {
+                int n = getNumberOfWorm();
+                int xCenter = 0;
+                int yCenter = 0;
+                
+                if (n > 0)
+                {    
+                    for(int i = 0; i < 3; i++)
+                    {
+                        if (gameState.myPlayer.worms[i].health > 0)
+                        {
+                            xCenter += gameState.myPlayer.worms[i].position.x;
+                            yCenter += gameState.myPlayer.worms[i].position.y;
+                        }    
+                    }
+
+                    xCenter = xCenter / n;
+                    yCenter = yCenter / n;
+                }
+
+                Position p = new Position(xCenter, yCenter);
+                if (Distance(currentWorm.position, p) <= 7)
+                {
+                    ngumpul = true;
+                }
+                else
+                {
+                    xTarget = xCenter;
+                    yTarget = yCenter;
+                }
+            }
             
+            if (ngumpul)
+            {
+                Worm targetEnemy = getWormById();
+
+                xTarget = targetEnemy.position.x;
+                yTarget = targetEnemy.position.y;
+            }
+
         }
 
         int xDir = xTarget - currentWorm.position.x;
@@ -189,6 +234,32 @@ public class Bot {
         return new DoNothingCommand();
     }
 
+    private int getNumberOfWorm()
+    {
+        int n = 0;
+        for(Worm w : gameState.myPlayer.worms)
+        {
+            if (w.health > 0)
+                n++;
+        }
+
+        return n;
+    }
+
+    private Worm getWormById()
+    {
+        int i = 2;
+        while(i > -1)
+        {
+            if (opponent.worms[i].health > 0)
+                return opponent.worms[i];
+            
+            i--;
+        }
+
+        return null;
+    }
+
 
     private int[] getOpponentWormHP()
     {
@@ -210,7 +281,7 @@ public class Bot {
         {
             float dis = Distance(p, enemy.position);
             
-            if (dis <= 4)
+            if (dis <= 4 && enemy.health > 0)
                 solution.add(enemy.id);
         }
 
