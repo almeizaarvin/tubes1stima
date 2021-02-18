@@ -102,28 +102,6 @@ public class Bot {
             found = true;
         }
         
-        //#region WORM BERDERET
-        // if (adaWormSaya)
-        // {
-        //     if (wormYangTerhalangi != null)
-        //     {
-        //         int x = currentWorm.position.x - 17;
-        //         int y = currentWorm.position.y - 17;
-
-        //         int a = wormYangTerhalangi.position.x - 17;
-        //         int b = wormYangTerhalangi.position.y - 17;
-
-        //         int tetha = 90;
-
-        //         int xPindah = (int)Math.round(a + (x-a)*Math.cos(tetha) - (y-b)*Math.sin(tetha));
-        //         int yPindah = (int)Math.round(b + (x-a)*Math.sin(tetha) - (y-b)*Math.cos(tetha));
-
-        //         xTarget = xPindah + 17;
-        //         yTarget = yPindah + 17;
-        //     }
-        // }
-        //#endregion
-        
         if (found)
         {
             int x = xTarget - currentWorm.position.x;
@@ -133,6 +111,10 @@ public class Bot {
                 yTarget = currentWorm.position.y;
             else
                 xTarget = currentWorm.position.x;
+            
+        }
+        else
+        {
             
         }
 
