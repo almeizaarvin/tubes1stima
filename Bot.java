@@ -8,7 +8,7 @@ import za.co.entelect.challenge.enums.Direction;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import jdk.javadoc.internal.doclets.toolkit.taglets.ReturnTaglet;
+// import jdk.javadoc.internal.doclets.toolkit.taglets.ReturnTaglet;
 
 
 public class Bot {
@@ -93,17 +93,13 @@ public class Bot {
         int yTarget = 17;
 
         boolean found = false;
-        int i = 0;
-        while(i < 3 && !found)
-        {
-            if (opponent.worms[i].health > 0)
-            {
-                xTarget = opponent.worms[i].position.x -1;
-                yTarget = opponent.worms[i].position.y +1;
-                found = true;
-            }
+        Worm tg = getEnemyTarget(currentWorm);
 
-            i++;
+        if (tg != null)
+        {
+            xTarget = tg.position.x;
+            yTarget = tg.position.y;
+            found = true;
         }
         
         //#region WORM BERDERET
@@ -130,19 +126,13 @@ public class Bot {
         
         if (found)
         {
-            Position p = new Position(xTarget, yTarget);
-            float distance = Distance(currentWorm.position, p);
+            int x = xTarget - currentWorm.position.x;
+            int y = yTarget - currentWorm.position.y;
 
-            if (distance <= SHOOTRANGE)
-            {
-                int x = p.x - currentWorm.position.x;
-                int y = p.y - currentWorm.position.y;
-
-                if (x < y)
-                    yTarget = currentWorm.position.y;
-                else
-                    xTarget = currentWorm.position.x;
-            }
+            if (x < y)
+                yTarget = currentWorm.position.y;
+            else
+                xTarget = currentWorm.position.x;
             
         }
 
@@ -230,7 +220,7 @@ public class Bot {
         return HP;
     }
 
-    private List<Integer> getSolutionSet(position p)
+    private List<Integer> getSolutionSet(Position p)
     {
         List<Integer> solution = new ArrayList<>();
 
@@ -245,7 +235,7 @@ public class Bot {
         return solution;
     }
 
-    private Worms getEnemyTarget(Worm p)
+    private Worm getEnemyTarget(Worm p)
     {
         List<Integer> target = getSolutionSet(p.position);
         
