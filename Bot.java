@@ -8,6 +8,8 @@ import za.co.entelect.challenge.enums.Direction;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import jdk.javadoc.internal.doclets.toolkit.taglets.ReturnTaglet;
+
 
 public class Bot {
 
@@ -214,6 +216,58 @@ public class Bot {
 
         return new DoNothingCommand();
     }
+
+
+    private int[] getOpponentWormHP()
+    {
+        int HP[] = new int[3];
+
+        for (int i = 0; i < 3; i++) 
+        {
+            HP[i] = opponent.worms[i].health;
+        }
+
+        return HP;
+    }
+
+    private List<Integer> getSolutionSet(position p)
+    {
+        List<Integer> solution = new ArrayList<>();
+
+        for (Worm enemy : opponent.worms) 
+        {
+            float dis = Distance(p, enemy.position);
+            
+            if (dis <= 4)
+                solution.add(enemy.id);
+        }
+
+        return solution;
+    }
+
+    private Worms getEnemyTarget(Worm p)
+    {
+        List<Integer> target = getSolutionSet(p.position);
+        
+        if (target.size() > 0)
+        {
+            int idxMin = 0;
+            for(int i = 1; i < target.size()-1; i++)
+            {
+                if (opponent.worms[target.get(idxMin)-1].health > opponent.worms[target.get(i)-1].health)
+                {
+                    idxMin = i;
+                }
+            }
+
+            return opponent.worms[target.get(idxMin)-1];
+        }
+        else
+        {
+            return null;
+        }
+    }
+
 
     private Worm getFirstWormInRange() 
     {
