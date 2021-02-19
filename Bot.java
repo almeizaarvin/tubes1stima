@@ -76,17 +76,55 @@ public class Bot {
                 float dis = Distance(enemy.position, currentWorm.position);
                 if (dis <= 5 && dis > 2 && enemy.health > 0)
                 {
-                    BananaCounter++;
-                    return new BananaCommand(enemy.position.x, enemy.position.y);
+                    if (currentWorm.health <= 60)
+                    {
+                        BananaCounter++;
+                        return new BananaCommand(enemy.position.x, enemy.position.y);
+                    }
+                    else
+                    {
+                        boolean adaEnemyLain = false;
+                        int enemyID = enemy.id;
+                        for(Worm e : opponent.worms)
+                        {
+                            if (e.id != enemyID)
+                            {
+                                float dista = Distance(e.position, enemy.position);
+                                if (dista <= 3)
+                                {
+                                    BananaCounter++;
+                                    return new BananaCommand((int)(enemy.position.x + e.position.x)/2, (int)(enemy.position.y + e.position.y)/2);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
         
+        boolean adaMusuhDiPosisiPlusEx = false;
         Worm enemyWorm = getFirstWormInRange();
         if (enemyWorm != null) {
+            adaMusuhDiPosisiPlusEx = true;
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
+
+            Position pos = new Position(currentWorm.position.x + direction.x, currentWorm.position.y + direction.y);
+            boolean adaDirtMenghalangi = false;
+            while(Distance(pos, enemyWorm.position) != 0 && !adaDirtMenghalangi)
+            {
+                if (gameState.map[pos.y][pos.x].type == CellType.DIRT)
+                {
+                    adaDirtMenghalangi = true;
+                }
+                else
+                {
+                    pos.x += direction.x;
+                    pos.y += direction.y;
+                }
+            }
             
-            return new ShootCommand(direction);
+            if (!adaDirtMenghalangi)
+                return new ShootCommand(direction);
         }
 
         // List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
@@ -109,13 +147,17 @@ public class Bot {
         
         if (found)
         {
+
             int x = xTarget - currentWorm.position.x;
             int y = yTarget - currentWorm.position.y;
-
-            if (x < y)
-                yTarget = currentWorm.position.y;
-            else
-                xTarget = currentWorm.position.x;
+            
+            if (!adaMusuhDiPosisiPlusEx)
+            {
+                if (x < y)
+                    yTarget = currentWorm.position.y;
+                else
+                    xTarget = currentWorm.position.x;
+            }
             
         }
         else
@@ -155,10 +197,18 @@ public class Bot {
             
             if (ngumpul)
             {
-                Worm targetEnemy = getWormById();
-
-                xTarget = targetEnemy.position.x;
-                yTarget = targetEnemy.position.y;
+                Position healthPack = getNearHealthPack(currentWorm.position);
+                if (healthPack != null)
+                {
+                    xTarget = healthPack.x;
+                    yTarget = healthPack.y;
+                }
+                else
+                {
+                    Worm targetEnemy = getEnemyWormStillAlive();
+                    xTarget = targetEnemy.position.x;
+                    yTarget = targetEnemy.position.y;
+                }
             }
 
         }
@@ -234,6 +284,51 @@ public class Bot {
         return new DoNothingCommand();
     }
 
+    private Position getNearHealthPack(Position P)
+    {
+        try {
+            ArrayList<Cell> healthPackCell = new ArrayList<>();
+            for(int i = 0; i < gameState.mapSize; i++)
+            {
+                for(int j = 0; j < gameState.mapSize; j++)
+                {
+                    if (gameState.map[j][i].powerUp.value > 0)
+                    {
+                        healthPackCell.add(gameState.map[j][i]);
+                    }
+                }
+            }
+
+            if (healthPackCell.size() > 0)
+            {
+                int idxMin = 0;
+                for (int i = 1; i < healthPackCell.size(); i++)
+                {
+                    Position cellPosition = new Position(healthPackCell.get(i).x, healthPackCell.get(i).y);
+                    Position cellPositionMin = new Position(healthPackCell.get(idxMin).x, healthPackCell.get(idxMin).y);
+
+                    float dis = Distance(P, cellPosition);
+                    float disMin = Distance(P, cellPositionMin);
+                    if (dis < disMin)
+                    {
+                        idxMin = i;
+                    }
+                }
+
+                return new Position(healthPackCell.get(idxMin).x, healthPackCell.get(idxMin).y);
+            }
+            else
+            {
+                return null;
+            }
+        } 
+        catch (Exception e) 
+        {
+            return null;
+        }
+        
+    }
+
     private int getNumberOfWorm()
     {
         int n = 0;
@@ -246,7 +341,7 @@ public class Bot {
         return n;
     }
 
-    private Worm getWormById()
+    private Worm getEnemyWormStillAlive()
     {
         int i = 2;
         while(i > -1)
