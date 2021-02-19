@@ -4,6 +4,7 @@ import za.co.entelect.challenge.command.*;
 import za.co.entelect.challenge.entities.*;
 import za.co.entelect.challenge.enums.CellType;
 import za.co.entelect.challenge.enums.Direction;
+import za.co.entelect.challenge.enums.PowerUpType;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,7 +22,7 @@ public class Bot {
     private Opponent opponent;
     private MyWorm currentWorm;
 
-    private boolean ngumpul = false;
+    private static boolean ngumpul = false;
 
     private float SHOOTRANGE = 5;
 
@@ -76,7 +77,7 @@ public class Bot {
                 float dis = Distance(enemy.position, currentWorm.position);
                 if (dis <= 5 && dis > 2 && enemy.health > 0)
                 {
-                    if (currentWorm.health <= 60)
+                    if (currentWorm.health <= 100)
                     {
                         BananaCounter++;
                         return new BananaCommand(enemy.position.x, enemy.position.y);
@@ -105,26 +106,8 @@ public class Bot {
         boolean adaMusuhDiPosisiPlusEx = false;
         Worm enemyWorm = getFirstWormInRange();
         if (enemyWorm != null) {
-            adaMusuhDiPosisiPlusEx = true;
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-
-            Position pos = new Position(currentWorm.position.x + direction.x, currentWorm.position.y + direction.y);
-            boolean adaDirtMenghalangi = false;
-            while(Distance(pos, enemyWorm.position) != 0 && !adaDirtMenghalangi)
-            {
-                if (gameState.map[pos.y][pos.x].type == CellType.DIRT)
-                {
-                    adaDirtMenghalangi = true;
-                }
-                else
-                {
-                    pos.x += direction.x;
-                    pos.y += direction.y;
-                }
-            }
-            
-            if (!adaDirtMenghalangi)
-                return new ShootCommand(direction);
+            return new ShootCommand(direction);
         }
 
         // List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
@@ -151,13 +134,10 @@ public class Bot {
             int x = xTarget - currentWorm.position.x;
             int y = yTarget - currentWorm.position.y;
             
-            if (!adaMusuhDiPosisiPlusEx)
-            {
-                if (x < y)
-                    yTarget = currentWorm.position.y;
-                else
-                    xTarget = currentWorm.position.x;
-            }
+            if (x < y)
+                yTarget = currentWorm.position.y;
+            else
+                xTarget = currentWorm.position.x;
             
         }
         else
@@ -197,18 +177,9 @@ public class Bot {
             
             if (ngumpul)
             {
-                Position healthPack = getNearHealthPack(currentWorm.position);
-                if (healthPack != null)
-                {
-                    xTarget = healthPack.x;
-                    yTarget = healthPack.y;
-                }
-                else
-                {
-                    Worm targetEnemy = getEnemyWormStillAlive();
-                    xTarget = targetEnemy.position.x;
-                    yTarget = targetEnemy.position.y;
-                }
+                Worm targetEnemy = getEnemyWormStillAlive();
+                xTarget = targetEnemy.position.x;
+                yTarget = targetEnemy.position.y;
             }
 
         }
@@ -284,50 +255,32 @@ public class Bot {
         return new DoNothingCommand();
     }
 
-    private Position getNearHealthPack(Position P)
-    {
-        try {
-            ArrayList<Cell> healthPackCell = new ArrayList<>();
-            for(int i = 0; i < gameState.mapSize; i++)
-            {
-                for(int j = 0; j < gameState.mapSize; j++)
-                {
-                    if (gameState.map[j][i].powerUp.value > 0)
-                    {
-                        healthPackCell.add(gameState.map[j][i]);
-                    }
-                }
-            }
+    // private Position getNearHealthPack()
+    // {
+    //     try {
+    //         ArrayList<Position> HP = new ArrayList<>();
+    //         for(int i = 0; i < gameState.mapSize; i++)
+    //         {
+    //             for(int j = 0; j < gameState.mapSize; j++)
+    //             {
+    //                 if (gameState.map[j][i].powerUp.type == PowerUpType.HEALTH_PACK && gameState.map[j][i].powerUp.value > 0)
+    //                 {
+    //                     HP.add(new Position(i, j));
+    //                 }
+    //             }
+    //         }
 
-            if (healthPackCell.size() > 0)
-            {
-                int idxMin = 0;
-                for (int i = 1; i < healthPackCell.size(); i++)
-                {
-                    Position cellPosition = new Position(healthPackCell.get(i).x, healthPackCell.get(i).y);
-                    Position cellPositionMin = new Position(healthPackCell.get(idxMin).x, healthPackCell.get(idxMin).y);
-
-                    float dis = Distance(P, cellPosition);
-                    float disMin = Distance(P, cellPositionMin);
-                    if (dis < disMin)
-                    {
-                        idxMin = i;
-                    }
-                }
-
-                return new Position(healthPackCell.get(idxMin).x, healthPackCell.get(idxMin).y);
-            }
-            else
-            {
-                return null;
-            }
-        } 
-        catch (Exception e) 
-        {
-            return null;
-        }
+    //         if (HP.size() > 0)
+    //             return HP.get(0);
+    //         else
+    //             return null;
+    //     } 
+    //     catch (Exception e) 
+    //     {
+    //         return null;
+    //     }
         
-    }
+    // }
 
     private int getNumberOfWorm()
     {
